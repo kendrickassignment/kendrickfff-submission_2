@@ -369,5 +369,3 @@ pylint modules/transform_module.py modules/trainer_module.py modules/tuner_modul
 | 4 | **Grafana dashboard** monitoring | ✅ |
 
 ---
-
-*Proyek ini dibuat sebagai submission akhir kelas Machine Learning Operations (MLOps) — Dicoding Indonesia.*
