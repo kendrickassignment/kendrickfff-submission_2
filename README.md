@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Nama** | Kendrick |
+| **Nama** | Kendrick Filbert |
 | **Username Dicoding** | kendrickfff |
 | **Dataset** | [IBM Telco Customer Churn](https://github.com/IBM/telco-customer-churn-on-icp4d) (7.032 records) |
 | **Kelas** | Machine Learning Operations (MLOps) |
@@ -72,7 +72,7 @@ Menggunakan **Deep Neural Network (DNN)** dengan arsitektur berikut:
 ```
 Input Layer
 ├── Numerical Features → Z-Score Normalization
-├── SeniorCitizen → Pass-through  
+├── SeniorCitizen → Pass-through 
 └── Categorical Features → Vocabulary Encoding → Embedding Layer
 
 Concatenation Layer
@@ -124,18 +124,18 @@ Pipeline dibangun menggunakan **TensorFlow Extended (TFX) v1.12.0** dengan **Apa
 
 ```
 ExampleGen → StatisticsGen → SchemaGen → ExampleValidator
-                                              ↓
-                                          Transform
-                                              ↓
-                                            Tuner ⭐
-                                              ↓
-                                           Trainer
-                                              ↓
-                                           Resolver
-                                              ↓
-                                          Evaluator
-                                              ↓
-                                           Pusher
+ ↓
+ Transform
+ ↓
+ Tuner ⭐
+ ↓
+ Trainer
+ ↓
+ Resolver
+ ↓
+ Evaluator
+ ↓
+ Pusher
 ```
 
 | # | Komponen | Fungsi |
@@ -159,10 +159,18 @@ Hasil evaluasi model menggunakan **TFMA (TensorFlow Model Analysis)**:
 
 | Metrik | Nilai | Threshold | Status |
 |---|---|---|---|
-| Binary Accuracy | ≥ 0.78 | 0.78 | ✅ Pass |
-| AUC | ≥ 0.75 | 0.75 | ✅ Pass |
+| Binary Accuracy | 0.808 | 0.78 | ✅ Pass |
+| AUC | 0.870 | 0.75 | ✅ Pass |
 
-> **Catatan:** Nilai aktual akan terlihat setelah pipeline dijalankan pada notebook.
+### Prediction Test Results
+
+| Customer Profile | Churn Probability | Klasifikasi |
+|---|---|---|
+| High Risk (Month-to-month, tenure 2) | 87.93% | 🔴 CHURN |
+| Low Risk (Two year, tenure 60) | 1.20% | 🟢 RETAIN |
+| Medium Risk (One year, tenure 24) | 11.43% | 🟢 RETAIN |
+
+> Model menunjukkan kemampuan yang sangat baik dalam membedakan pelanggan berisiko tinggi dan rendah.
 
 ### Slicing Analysis
 
@@ -187,20 +195,35 @@ Evaluasi dilakukan dengan slicing berdasarkan:
 ### Deployment Steps
 
 1. Build Docker image dari Dockerfile
-2. Push ke Railway via GitHub repository atau Railway CLI
+2. Push ke Railway via GitHub repository
 3. Model diakses via REST API endpoint
 
 ### API Endpoint
 
 ```
-POST https://<RAILWAY_APP_URL>/v1/models/churn-model:predict
+POST https://kendrickfff-submission2-production.up.railway.app/v1/models/churn-model:predict
 ```
 
 ### Tautan Web App
 
-> **Serving URL:** `https://<RAILWAY_APP_URL>/v1/models/churn-model`
-> 
-> *(Ganti `<RAILWAY_APP_URL>` dengan URL Railway aktual setelah deployment)*
+> **Serving URL:** `https://kendrickfff-submission2-production.up.railway.app/v1/models/churn-model`
+>
+> **GitHub Repository:** `https://github.com/kendrickassignment/kendrickfff-submission_2`
+
+### Contoh Request
+
+```json
+{
+  "signature_name": "serving_default",
+  "instances": [
+    {
+      "examples": {
+        "b64": "<base64-encoded tf.Example>"
+      }
+    }
+  ]
+}
+```
 
 ---
 
@@ -244,40 +267,40 @@ docker-compose up -d
 
 ```
 .
-├── README.md                           # Dokumentasi proyek (file ini)
-├── kendrickfff-pipeline.ipynb          # Notebook utama pipeline TFX
-├── kendrickfff-testing.ipynb           # Notebook testing prediction ⭐
-├── requirements.txt                    # Dependencies
-├── Dockerfile                          # Dockerfile untuk deployment
-├── monitoring.config                   # TF Serving monitoring config
+├── README.md                    # Dokumentasi proyek (file ini)
+├── kendrickfff-pipeline.ipynb   # Notebook utama pipeline TFX
+├── kendrickfff-testing.ipynb    # Notebook testing prediction ⭐
+├── requirements.txt             # Dependencies
+├── Dockerfile                   # Dockerfile untuk deployment
+├── monitoring.config            # TF Serving monitoring config
 │
 ├── data/
-│   └── churn.csv                       # Dataset
+│   └── churn.csv                # Dataset
 │
-├── modules/                            # Modul pipeline (clean code) ⭐
+├── modules/                     # Modul pipeline (clean code) ⭐
 │   ├── __init__.py
-│   ├── transform_module.py             # Preprocessing & feature engineering
-│   ├── trainer_module.py               # Model definition & training
-│   └── tuner_module.py                 # Hyperparameter tuning ⭐
+│   ├── transform_module.py      # Preprocessing & feature engineering
+│   ├── trainer_module.py        # Model definition & training
+│   └── tuner_module.py          # Hyperparameter tuning ⭐
 │
-├── kendrickfff-pipeline/               # Pipeline artifacts
+├── kendrickfff-pipeline/        # Pipeline artifacts
 │   ├── metadata/
 │   ├── serving_model/
 │   └── ...
 │
-├── monitoring/                         # Monitoring stack
-│   ├── Dockerfile                      # Prometheus Dockerfile
-│   ├── prometheus.yml                  # Prometheus config
-│   ├── prometheus.config               # TF Serving metrics config
-│   ├── docker-compose.yml              # Docker Compose (Prometheus + Grafana)
+├── monitoring/                  # Monitoring stack
+│   ├── Dockerfile               # Prometheus Dockerfile
+│   ├── prometheus.yml           # Prometheus config
+│   ├── prometheus.config        # TF Serving metrics config
+│   ├── docker-compose.yml       # Docker Compose (Prometheus + Grafana)
 │   └── provisioning/
 │       └── datasources/
-│           └── datasource.yml          # Grafana datasource config
+│           └── datasource.yml   # Grafana datasource config
 │
-├── kendrickfff-deployment.png          # Screenshot deployment ✅
-├── kendrickfff-monitoring.png          # Screenshot Prometheus ✅
-├── kendrickfff-grafana-dashboard.png   # Screenshot Grafana ⭐
-└── kendrickfff-pylint.png              # Screenshot pylint score ⭐
+├── kendrickfff-deployment.png   # Screenshot deployment ✅
+├── kendrickfff-monitoring.png   # Screenshot Prometheus ✅
+├── kendrickfff-grafana-dashboard.png  # Screenshot Grafana ⭐
+└── kendrickfff-pylint.png       # Screenshot pylint score ⭐
 ```
 
 ---
@@ -311,8 +334,8 @@ docker build -t churn-model-serving .
 # Test locally
 docker run -p 8501:8501 churn-model-serving
 
-# Deploy ke Railway
-railway up
+# Deploy ke Railway via GitHub
+git push origin main
 ```
 
 ### 4. Jalankan Monitoring
@@ -329,8 +352,10 @@ Jalankan seluruh cell di `kendrickfff-testing.ipynb`.
 ### 6. Pylint Check ⭐
 
 ```bash
-pylint modules/ --output-format=text
+pylint modules/transform_module.py modules/trainer_module.py modules/tuner_module.py
 ```
+
+> Score: **8.93/10** ✅
 
 ---
 
@@ -339,7 +364,7 @@ pylint modules/ --output-format=text
 | # | Saran | Status |
 |---|---|---|
 | 1 | Komponen **Tuner** untuk hyperparameter tuning | ✅ |
-| 2 | **Clean code** + modules directory + pylint | ✅ |
+| 2 | **Clean code** + modules directory + pylint (8.93/10) | ✅ |
 | 3 | **Testing notebook** untuk prediction request | ✅ |
 | 4 | **Grafana dashboard** monitoring | ✅ |
 
