@@ -1,0 +1,7 @@
+mlops-env/
+tuner_working_dir/
+guide.pdf
+kendrickfff-submission.zip
+kendrickfff-submission/
+__pycache__/
+*.pyc

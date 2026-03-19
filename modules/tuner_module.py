@@ -10,6 +10,7 @@ import tensorflow as tf
 import tensorflow_transform as tft
 from tensorflow.keras import layers
 from tfx.components.trainer.fn_args_utils import FnArgs
+from tfx.components.tuner.component import TunerFnResult
 from tfx_bsl.public import tfxio as tfxio_module
 
 from modules.transform_module import (
@@ -25,15 +26,7 @@ EVAL_BATCH_SIZE = 64
 
 
 def _build_keras_model_tuner(hp, tf_transform_output):
-    """Build a tunable Keras model for hyperparameter search.
-
-    Args:
-        hp: Keras Tuner HyperParameters object.
-        tf_transform_output: TFTransformOutput for feature metadata.
-
-    Returns:
-        Compiled Keras model with tunable hyperparameters.
-    """
+    """Build a tunable Keras model for hyperparameter search."""
     input_features = []
     encoded_features = []
 
@@ -103,17 +96,7 @@ def _build_keras_model_tuner(hp, tf_transform_output):
 
 
 def _input_fn(file_pattern, data_accessor, tf_transform_output, batch_size):
-    """Create input function for tuning data.
-
-    Args:
-        file_pattern: File pattern for input data.
-        data_accessor: DataAccessor for reading data.
-        tf_transform_output: TFTransformOutput for feature metadata.
-        batch_size: Batch size for the dataset.
-
-    Returns:
-        tf.data.Dataset of (features, labels) tuples.
-    """
+    """Create input function for tuning data."""
     dataset = data_accessor.tf_dataset_factory(
         file_pattern,
         tfxio_module.TensorFlowDatasetOptions(
@@ -128,13 +111,15 @@ def _input_fn(file_pattern, data_accessor, tf_transform_output, batch_size):
 def tuner_fn(fn_args: FnArgs):
     """Define the tuner configuration for hyperparameter search.
 
-    Args:
-        fn_args: FnArgs object containing tuner arguments.
-
     Returns:
-        TunerFnResult with tuner object and fit kwargs.
+        TunerFnResult namedtuple with tuner object and fit kwargs.
     """
-    tf_transform_output = tft.TFTransformOutput(fn_args.transform_output)
+    # Resolve transform_output path
+    transform_output_path = fn_args.transform_output
+    if transform_output_path is None:
+        transform_output_path = fn_args.transform_graph_path
+
+    tf_transform_output = tft.TFTransformOutput(transform_output_path)
 
     train_dataset = _input_fn(
         fn_args.train_files,
@@ -149,13 +134,10 @@ def tuner_fn(fn_args: FnArgs):
         EVAL_BATCH_SIZE,
     )
 
-    # Handle None working_dir (common in InteractiveContext)
+    # Handle None working_dir
     working_dir = fn_args.working_dir
     if working_dir is None:
-        if hasattr(fn_args, 'custom_config') and fn_args.custom_config:
-            working_dir = fn_args.custom_config.get('working_dir', 'tuner_working_dir')
-        else:
-            working_dir = 'tuner_working_dir'
+        working_dir = os.path.join(os.getcwd(), "tuner_working_dir")
     os.makedirs(working_dir, exist_ok=True)
 
     tuner = kt.RandomSearch(
@@ -169,13 +151,13 @@ def tuner_fn(fn_args: FnArgs):
         project_name="churn_tuner",
     )
 
-    return {
-        "tuner": tuner,
-        "fit_kwargs": {
+    return TunerFnResult(
+        tuner=tuner,
+        fit_kwargs={
             "x": train_dataset,
             "validation_data": eval_dataset,
             "steps_per_epoch": fn_args.train_steps,
             "validation_steps": fn_args.eval_steps,
             "epochs": 5,
         },
-    }
+    )

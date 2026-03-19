@@ -1,0 +1,46 @@
+{
+  "evalConfig": {
+    "modelSpecs": [
+      {
+        "labelKey": "Churn_xf"
+      }
+    ],
+    "slicingSpecs": [
+      {}
+    ],
+    "metricsSpecs": [
+      {
+        "metrics": [
+          {
+            "className": "BinaryAccuracy",
+            "threshold": {
+              "valueThreshold": {
+                "lowerBound": 0.78
+              }
+            }
+          },
+          {
+            "className": "AUC",
+            "threshold": {
+              "valueThreshold": {
+                "lowerBound": 0.75
+              }
+            }
+          },
+          {
+            "className": "ExampleCount"
+          }
+        ],
+        "modelNames": [
+          ""
+        ]
+      }
+    ]
+  },
+  "version": "0.43.0",
+  "dataLocation": "<user provided PCollection>",
+  "fileFormat": "<unknown>",
+  "modelLocations": {
+    "": "c:\\Users\\kendr\\OneDrive\\Desktop\\Dicoding MLOps\\kendrickfff-submission_2\\kendrickfff-pipeline\\Trainer\\model\\8\\Format-Serving"
+  }
+}
